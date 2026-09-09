@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛍️ Product Shop: 673380275-5 — รายการสินค้า</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar-game">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand text-decoration-none" th:href="@{/products}">
+                <i class="bi bi-bag-check-fill me-2"></i>Product Shop
+            </a>
+            <span class="nav-text">CP353002 — Lab 8: Spring Boot + JPA + PostgreSQL (1:1 & 1:N)</span>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Page Header -->
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1><i class="bi bi-box-seam me-2"></i>รายการสินค้าทั้งหมด</h1>
+                <p class="subtitle">จัดการข้อมูลสินค้าในระบบ — รองรับความสัมพันธ์ 1:1 (Detail) และ 1:N (Reviews)</p>
+            </div>
+            <a th:href="@{/products/add}" class="btn btn-cyan btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>เพิ่มสินค้าใหม่
+            </a>
+        </div>
+
+        <!-- Success Message -->
+        <div th:if="${message}" class="alert alert-success-game mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${message}">ดำเนินการสำเร็จ</span>
+        </div>
+
+        <!-- Product Table Card -->
+        <div class="card-glass p-4">
+            <!-- ─── แสดงตารางเมื่อมีข้อมูล ─── -->
+            <div th:if="${products != null and !products.isEmpty()}">
+                <div class="table-responsive">
+                    <table class="table table-game align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>ชื่อสินค้า</th>
+                                <th>หมวดหมู่</th>
+                                <th>แบรนด์</th>
+                                <th>คลัง</th>
+                                <th>โปรโมชั่น (Strategy)</th>
+                                <th>ราคาสุทธิ (บาท)</th>
+                                <th>รายละเอียดเสริม (1:1)</th>
+                                <th class="text-center">รีวิว (1:N)</th>
+                                <th class="text-center" style="width: 120px;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="product, iter : ${products}">
+                                <td class="text-secondary" th:text="${iter.count}">1</td>
+                                <td>
+                                    <span class="fw-semibold text-primary" th:text="${product.name}">iPhone 15 Pro</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-category" th:text="${product.category}">Electronics</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-brand" th:text="${product.brand}">Apple</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-stock" th:text="${product.stock} + ' ชิ้น'">15 ชิ้น</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-discount" th:text="${product.discountName}">ราคาปกติ (0%)</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold" style="color: var(--accent-cyan-dark);"
+                                          th:text="${#numbers.formatDecimal(product.finalPrice, 1, 2)} + ' ฿'">38,900.00 ฿</span>
+                                    <br th:if="${product.price != product.finalPrice}">
+                                    <small th:if="${product.price != product.finalPrice}"
+                                           class="text-secondary text-decoration-line-through"
+                                           th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ฿'">41,900.00 ฿</small>
+                                </td>
+                                <td>
+                                    <div th:if="${product.detail != null}">
+                                        <small class="text-secondary d-block" th:if="${product.detail.warranty != null and !product.detail.warranty.isEmpty()}">
+                                            <i class="bi bi-shield-check text-success me-1"></i><span th:text="${product.detail.warranty}">1 Year</span>
+                                        </small>
+                                        <small class="text-muted d-block" th:if="${product.detail.manufacturedCountry != null and !product.detail.manufacturedCountry.isEmpty()}">
+                                            <i class="bi bi-geo-alt me-1"></i><span th:text="${product.detail.manufacturedCountry}">USA</span>
+                                        </small>
+                                        <small class="text-muted d-block" th:if="${product.detail.weight != null}">
+                                            <i class="bi bi-speedometer2 me-1"></i><span th:text="${product.detail.weight} + ' kg'">0.187 kg</span>
+                                        </small>
+                                    </div>
+                                    <span th:if="${product.detail == null}" class="text-muted small">-</span>
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-light border star-rating px-2 py-1"
+                                            data-bs-toggle="modal" th:data-bs-target="'#reviewModal-' + ${product.id}"
+                                            title="คลิกเพื่อดูรีวิวและเขียนรีวิว">
+                                        <i class="bi bi-star-fill text-warning me-1"></i>
+                                        <span class="fw-bold" th:text="${#numbers.formatDecimal(product.getAverageRating(), 1, 1)}">4.8</span>
+                                        <small class="text-secondary" th:text="'(' + ${#lists.size(product.reviews)} + ')'">(3)</small>
+                                    </button>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a th:href="@{/products/edit/{id}(id=${product.id})}"
+                                           class="btn btn-gold" title="แก้ไข">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a th:href="@{/products/delete/{id}(id=${product.id})}"
+                                           class="btn btn-danger-glow" title="ลบ">
+                                            <i class="bi bi-trash3"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <small class="text-secondary">
+                        <i class="bi bi-database me-1"></i>
+                        ทั้งหมด <strong th:text="${#lists.size(products)}">0</strong> รายการ
+                    </small>
+                </div>
+            </div>
+
+            <!-- ─── Empty State ─── -->
+            <div th:if="${products == null or products.isEmpty()}" class="empty-state">
+                <i class="bi bi-bag-x icon"></i>
+                <h4>ยังไม่มีสินค้าในระบบ</h4>
+                <p>เริ่มต้นเพิ่มข้อมูลสินค้าและรายละเอียดเสริมเข้าสู่ระบบของคุณ</p>
+                <a th:href="@{/products/add}" class="btn btn-cyan mt-2">
+                    <i class="bi bi-plus-circle me-2"></i>เพิ่มสินค้าแรกของคุณ
+                </a>
+            </div>
+        </div>
+
+        <!-- ─── Review Modals (1:N Reviews) ─── -->
+        <div th:if="${products != null}">
+            <div th:each="product : ${products}">
+                <div class="modal fade" th:id="'reviewModal-' + ${product.id}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                            <div class="modal-header border-bottom">
+                                <h5 class="modal-title fw-bold" style="font-family: var(--font-heading);">
+                                    <i class="bi bi-chat-left-quote-fill text-warning me-2"></i>รีวิวสินค้า: <span th:text="${product.name}" class="text-primary"></span>
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- สรุปคะแนนรีวิว -->
+                                <div class="d-flex align-items-center justify-content-between p-3 mb-3 rounded" style="background: rgba(2, 132, 199, 0.06); border: 1px solid rgba(2, 132, 199, 0.15);">
+                                    <div>
+                                        <span class="fs-4 fw-bold text-warning">
+                                            <i class="bi bi-star-fill me-1"></i>
+                                            <span th:text="${#numbers.formatDecimal(product.getAverageRating(), 1, 1)}">0.0</span>
+                                        </span>
+                                        <span class="text-secondary small ms-1">/ 5.0</span>
+                                    </div>
+                                    <span class="badge bg-primary px-2 py-1" th:text="'ทั้งหมด ' + ${#lists.size(product.reviews)} + ' รีวิว'">ทั้งหมด 0 รีวิว</span>
+                                </div>
+
+                                <!-- รายการรีวิว -->
+                                <h6 class="fw-bold mb-2 text-secondary" style="font-size: 0.88rem;">
+                                    <i class="bi bi-list-stars me-1"></i>ความคิดเห็นทั้งหมด
+                                </h6>
+                                <div class="mb-4" style="max-height: 200px; overflow-y: auto;">
+                                    <div th:if="${product.reviews != null and !product.reviews.isEmpty()}">
+                                        <div th:each="rev : ${product.reviews}" class="p-2 mb-2 rounded border bg-light">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <strong class="text-dark" style="font-size: 0.88rem;" th:text="${rev.reviewer}">ผู้รีวิว</strong>
+                                                <span class="text-warning small">
+                                                    <i th:each="i : ${#numbers.sequence(1, rev.rating)}" class="bi bi-star-fill"></i>
+                                                </span>
+                                            </div>
+                                            <p class="mb-1 text-secondary small" th:text="${rev.comment != null and !rev.comment.isEmpty() ? rev.comment : 'ไม่มีข้อความรีวิว'}"></p>
+                                            <small class="text-muted" style="font-size: 0.72rem;" th:text="${#temporals.format(rev.reviewDate, 'dd/MM/yyyy')}">09/09/2026</small>
+                                        </div>
+                                    </div>
+                                    <div th:if="${product.reviews == null or product.reviews.isEmpty()}" class="text-center py-3 text-muted small">
+                                        <i class="bi bi-chat-dots fs-3 d-block mb-1 opacity-50"></i>
+                                        ยังไม่มีรีวิวสำหรับสินค้านี้
+                                    </div>
+                                </div>
+
+                                <!-- ฟอร์มเขียนรีวิวใหม่ -->
+                                <div class="p-3 rounded border" style="background: rgba(0,0,0,0.02);">
+                                    <h6 class="fw-bold mb-2 text-dark" style="font-size: 0.88rem;">
+                                        <i class="bi bi-pencil-square me-1"></i>เขียนรีวิวใหม่ (1:N Relation)
+                                    </h6>
+                                    <form th:action="@{/products/{id}/reviews(id=${product.id})}" method="post">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-7">
+                                                <input type="text" name="reviewer" class="form-control form-control-sm" placeholder="ชื่อผู้รีวิว (เช่น Alice)" required>
+                                            </div>
+                                            <div class="col-5">
+                                                <select name="rating" class="form-select form-select-sm" required>
+                                                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                                                    <option value="4">⭐⭐⭐⭐ (4)</option>
+                                                    <option value="3">⭐⭐⭐ (3)</option>
+                                                    <option value="2">⭐⭐ (2)</option>
+                                                    <option value="1">⭐ (1)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2">
+                                            <textarea name="comment" class="form-control form-control-sm" rows="2" placeholder="ความคิดเห็นเกี่ยวกับสินค้า"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-cyan w-100">
+                                            <i class="bi bi-send me-1"></i>บันทึกรีวิว
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-game">
+        <div class="container">
+            CP353002 Principles of Software Design — Lab 8: Table Relationships (1:1 & 1:N)
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
